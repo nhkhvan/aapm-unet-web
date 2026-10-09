@@ -1,4 +1,4 @@
-import io, os, torch
+import io, os, gc, torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,7 +8,6 @@ from fastapi.responses import Response
 from skimage.filters import threshold_otsu
 from huggingface_hub import hf_hub_download
 
-# Tối ưu PyTorch chỉ chạy 1 thread để tránh tốn RAM/CPU trên Render
 torch.set_num_threads(1)
 
 app = FastAPI()
@@ -84,7 +83,8 @@ device = torch.device("cpu")
 model = UNet(n_channels=2, n_classes=1).to(device)
 
 MODEL_REPO = "nhkv10905/unet-aapm-non-metal"
-weights_path = hf_hub_download(repo_id=MODEL_REPO, filename="unet_best.pth")
+HF_TOKEN = os.environ.get("HF_TOKEN")
+weights_path = hf_hub_download(repo_id=MODEL_REPO, filename="unet_best.pth", token=HF_TOKEN)
 model.load_state_dict(torch.load(weights_path, map_location=device))
 model.eval()
 
@@ -118,11 +118,11 @@ async def predict(file: UploadFile = File(...)):
     try:
         contents = await file.read()
         
-        # Kiểm tra dung lượng file
-        if len(contents) != 512 * 512 * 4: # 1,048,576 bytes
-            raise HTTPException(status_code=400, detail="File size must be exactly 1MB (512x512 float32)")
+        if len(contents) != 512 * 512 * 4:
+            raise HTTPException(status_code=400, detail="File size invalid")
             
         artifact_raw = np.frombuffer(contents, dtype=np.float32).reshape((512, 512)).copy()
+        del contents
         
         mask = create_metal_mask_2d(artifact_raw)
         artifact = np.clip(artifact_raw, -1024, 3071).astype(np.float32)
@@ -140,8 +140,12 @@ async def predict(file: UploadFile = File(...)):
             pred_hu[metal_bool] = art_hu_t[metal_bool]
             
         pred_np = pred_hu.numpy()[0, 0].astype(np.float32)
+        
+        del art_n, mask_t, art_hu_t, model_input, pred_n, pred_hu
+        gc.collect()
+        
         return Response(content=pred_np.tobytes(), media_type="application/octet-stream")
         
     except Exception as e:
-        print(f"Error during prediction: {str(e)}")
+        print(f"Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
