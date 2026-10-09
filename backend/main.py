@@ -2,27 +2,24 @@ import io, os, torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from skimage.filters import threshold_otsu
 from huggingface_hub import hf_hub_download
 
+# Tối ưu PyTorch chỉ chạy 1 thread để tránh tốn RAM/CPU trên Render
+torch.set_num_threads(1)
+
 app = FastAPI()
 
-# 1. Cấu hình CORS mở rộng toàn bộ
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=False,  # Để False khi allow_origins=["*"] để tránh xung đột trình duyệt
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"]
 )
-
-@app.options("/{full_path:path}")
-async def options_handler(full_path: str):
-    return Response(status_code=200)
 
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -112,25 +109,39 @@ def create_metal_mask_2d(recon_hu, body_threshold_hu=150.0):
 def health_check():
     return {"status": "ok"}
 
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    return Response(status_code=200)
+
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
-    contents = await file.read()
-    artifact_raw = np.frombuffer(contents, dtype=np.float32).reshape((512, 512)).copy()
-
-    mask = create_metal_mask_2d(artifact_raw)
-    artifact = np.clip(artifact_raw, -1024, 3071).astype(np.float32)
-
-    art_n = torch.from_numpy((artifact/HU_SCALE)[None, None]).float().to(device)
-    mask_t = torch.from_numpy(mask[None, None]).float().to(device)
-    art_hu_t = torch.from_numpy(artifact[None, None]).float().to(device)
-
-    model_input = torch.cat([art_n, mask_t], dim=1)
-
-    with torch.no_grad():
-        pred_n = model(model_input)
-        pred_hu = pred_n * HU_SCALE
-        metal_bool = mask_t > 0.5
-        pred_hu[metal_bool] = art_hu_t[metal_bool]
-
-    pred_np = pred_hu.numpy()[0, 0].astype(np.float32)
-    return Response(content=pred_np.tobytes(), media_type="application/octet-stream")
+    try:
+        contents = await file.read()
+        
+        # Kiểm tra dung lượng file
+        if len(contents) != 512 * 512 * 4: # 1,048,576 bytes
+            raise HTTPException(status_code=400, detail="File size must be exactly 1MB (512x512 float32)")
+            
+        artifact_raw = np.frombuffer(contents, dtype=np.float32).reshape((512, 512)).copy()
+        
+        mask = create_metal_mask_2d(artifact_raw)
+        artifact = np.clip(artifact_raw, -1024, 3071).astype(np.float32)
+        
+        art_n = torch.from_numpy((artifact/HU_SCALE)[None, None]).float().to(device)
+        mask_t = torch.from_numpy(mask[None, None]).float().to(device)
+        art_hu_t = torch.from_numpy(artifact[None, None]).float().to(device)
+        
+        model_input = torch.cat([art_n, mask_t], dim=1)
+        
+        with torch.no_grad():
+            pred_n = model(model_input)
+            pred_hu = pred_n * HU_SCALE
+            metal_bool = mask_t > 0.5
+            pred_hu[metal_bool] = art_hu_t[metal_bool]
+            
+        pred_np = pred_hu.numpy()[0, 0].astype(np.float32)
+        return Response(content=pred_np.tobytes(), media_type="application/octet-stream")
+        
+    except Exception as e:
+        print(f"Error during prediction: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
