@@ -10,13 +10,19 @@ from huggingface_hub import hf_hub_download
 
 app = FastAPI()
 
+# 1. Cấu hình CORS mở rộng toàn bộ
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,  # Để False khi allow_origins=["*"] để tránh xung đột trình duyệt
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
+
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    return Response(status_code=200)
 
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels):
