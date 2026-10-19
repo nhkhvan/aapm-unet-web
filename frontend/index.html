@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AAPM CT-MAR | Metal Artifact Reduction</title>
+<title>UNET CT-MAR | Metal Artifact Reduction</title>
 <style>
 :root{color-scheme:dark;--bg:#061226;--panel:#0c1d38;--line:#174c7b;--blue:#2588ff;--cyan:#22d3ee;--green:#10cba0;--muted:#9db2d4}
 *{box-sizing:border-box}
@@ -55,7 +55,7 @@ footer{text-align:center;color:#728caf;padding:22px 12px;border-top:1px solid #1
 <body>
 <header>
   <div>
-    <div class="brand">AAPM <span>CT-MAR</span></div>
+    <div class="brand">UNET <span>CT-MAR</span></div>
     <div class="subtitle" data-i18n="subtitle">Khử nhiễu kim loại trong ảnh CT bằng U-Net 2-channel</div>
   </div>
   <div class="header-right">
@@ -64,7 +64,7 @@ footer{text-align:center;color:#728caf;padding:22px 12px;border-top:1px solid #1
       <span class="lang-sep">|</span>
       <span id="enLabel">ENG</span>
     </button>
-    <div class="pill" data-i18n="system">● Hệ thống CT-MAR</div>
+    <div class="pill" data-i18n="system">● Hệ thống CT-MAR </div>
   </div>
 </header>
 
@@ -91,7 +91,7 @@ footer{text-align:center;color:#728caf;padding:22px 12px;border-top:1px solid #1
       <article class="image-card">
         <div class="image-heading"><span class="number">01</span><span data-i18n="inputTitle">Ảnh đầu vào</span></div>
         <canvas id="canvasInput" width="512" height="512"></canvas>
-        <div class="caption" data-i18n="inputCaption">Ảnh CT đầu vào.</div>
+        <div class="caption" data-i18n="inputCaption">Ảnh CT có nhiễu kim loại.</div>
       </article>
 
       <article class="image-card">
@@ -100,24 +100,14 @@ footer{text-align:center;color:#728caf;padding:22px 12px;border-top:1px solid #1
       </article>
 
       <article class="image-card">
-        <div class="image-heading"><span class="number">03</span><span data-i18n="outputTitle">Kết quả U-Net</span></div>
+        <div class="image-heading"><span class="number">03</span><span data-i18n="outputTitle">Kết quả</span></div>
         <canvas id="canvasOutput" width="512" height="512"></canvas>
         <div class="caption" data-i18n="outputCaption">Ảnh sau khi khử nhiễu kim loại.</div>
       </article>
     </section>
-
-    <aside class="side">
-      <section class="panel">
-        <h3 data-i18n="infoTitle">Thông tin</h3>
-        <div class="info-row"><span data-i18n="modelLabel">Mô hình</span><span>U-Net 2-channel</span></div>
-        <div class="info-row"><span data-i18n="sizeLabel">Kích thước</span><span>512 × 512</span></div>
-        <div class="info-row"><span data-i18n="dataLabel">Dữ liệu</span><span>Float32</span></div>
-        <div class="info-row"><span>API</span><span>/predict</span></div>
-      </section>
-    </aside>
   </div>
 
-  <footer>AAPM CT-MAR · U-Net 2-Channel · Metal Artifact Reduction</footer>
+  <footer>Unet CT-MAR · 2-Channel · Metal Artifact Reduction</footer>
 </main>
 
 <script>
@@ -143,14 +133,10 @@ const translations = {
     processBtn: "▶ Gửi xử lý",
     readyStatus: "Sẵn sàng. Chọn một file RAW để bắt đầu.",
     inputTitle: "Ảnh đầu vào",
-    inputCaption: "Ảnh CT đầu vào.",
+    inputCaption: "Ảnh CT có nhiễu kim loại.",
     maskTitle: "Mask kim loại",
-    outputTitle: "Kết quả U-Net",
+    outputTitle: "Kết quả",
     outputCaption: "Ảnh sau khi khử nhiễu kim loại.",
-    infoTitle: "Thông tin",
-    modelLabel: "Mô hình",
-    sizeLabel: "Kích thước",
-    dataLabel: "Dữ liệu",
     selected: "Đã chọn file. Nhấn Gửi xử lý để tiếp tục.",
     selectFirst: "Vui lòng chọn file RAW trước.",
     invalidFile: "File không hợp lệ: cần đúng 1,048,576 byte (512 × 512 Float32).",
@@ -174,14 +160,10 @@ const translations = {
     processBtn: "▶ Process image",
     readyStatus: "Ready. Select a RAW file to begin.",
     inputTitle: "Input image",
-    inputCaption: "Input CT image.",
+    inputCaption: "Raw CT image with metal artifact.",
     maskTitle: "Metal Mask",
-    outputTitle: "U-Net Result",
+    outputTitle: "Result",
     outputCaption: "Image after metal artifact reduction.",
-    infoTitle: "Information",
-    modelLabel: "Model",
-    sizeLabel: "Dimensions",
-    dataLabel: "Data type",
     selected: "File selected. Click Process image to continue.",
     selectFirst: "Please select a RAW file first.",
     invalidFile: "Invalid file: expected 1,048,576 bytes (512 × 512 Float32).",
