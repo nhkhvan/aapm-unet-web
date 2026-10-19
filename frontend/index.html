@@ -1,120 +1,247 @@
+```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AAPM CT-MAR | Khử Nhiễu Kim Loại</title>
-    <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; text-align: center; }
-        .container { max-width: 950px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        h1 { color: #38bdf8; margin-bottom: 5px; }
-        p { color: #94a3b8; font-size: 14px; }
-        .upload-section { margin: 25px 0; padding: 20px; border: 2px dashed #475569; border-radius: 8px; background: #0f172a; }
-        input[type="file"] { display: none; }
-        .btn-select { background: #3b82f6; color: white; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-select:hover { background: #2563eb; }
-        .btn-process { background: #10b981; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; margin-left: 10px; }
-        .btn-process:hover { background: #059669; }
-        #status { margin-top: 15px; font-weight: bold; color: #f59e0b; min-height: 24px; }
-        .canvas-grid { display: flex; justify-content: space-around; margin-top: 25px; flex-wrap: wrap; gap: 20px; }
-        .canvas-card { background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155; }
-        canvas { background: #000; width: 400px; height: 400px; border-radius: 4px; display: block; margin-top: 10px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNET CT-MAR | Metal Artifact Reduction</title>
+<style>
+:root{color-scheme:dark;--bg:#061226;--panel:#0c1d38;--line:#174c7b;--blue:#2588ff;--cyan:#22d3ee;--green:#10cba0;--muted:#9db2d4}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#102b52 0,#061226 58%);color:#f1f6ff;font:15px "Segoe UI",Arial,sans-serif;min-height:100vh}
+header{padding:22px clamp(18px,4vw,55px);border-bottom:1px solid #17416a;background:#07162bea;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.brand{font-size:clamp(24px,3vw,38px);font-weight:800;letter-spacing:-1px}.brand span{color:var(--cyan)}
+.subtitle{color:var(--muted);margin-top:6px;font-size:13px}
+.header-right{display:flex;align-items:center;gap:12px}
+.pill{border:1px solid #24578a;border-radius:30px;padding:9px 13px;color:#80f4d4;font-size:12px}
+.lang-btn{display:flex;align-items:center;gap:5px;background:#0b1d35;border:1px solid #2874a8;border-radius:8px;padding:8px 11px;color:#c8d8ee;font-size:12px;cursor:pointer}
+.lang-btn .active-lang{color:var(--cyan);font-weight:800}.lang-sep{color:#6685a9}
+main{width:100%;margin:0;padding:20px clamp(12px,1.5vw,24px)}
+.panel{background:linear-gradient(145deg,#102747,#091830);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 12px 35px #0002}
+.upload{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}
+.upload-title{font-size:17px;font-weight:700;margin-bottom:6px}
+.help{color:var(--muted);font-size:12px;line-height:1.6}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input[type=file]{display:none}
+.btn{border:0;border-radius:9px;padding:11px 16px;color:white;font-weight:700;font-size:13px;cursor:pointer;transition:.2s}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.select{background:linear-gradient(120deg,#267cff,#1760d8)}
+.process{background:linear-gradient(120deg,#13cba1,#00a9b9)}
+.filename{color:#a9c1e5;max-width:230px;overflow-wrap:anywhere;font-size:12px}
+#status{margin-top:14px;padding:10px 12px;background:#07152b;border-radius:8px;color:#b9d1f5;line-height:1.5;font-size:12px;overflow-wrap:anywhere}
+.progress{height:4px;background:#19385e;border-radius:9px;overflow:hidden;margin-top:9px}
+#progressBar{height:100%;width:0;background:linear-gradient(90deg,#238bff,#20e0b2);transition:width .3s}
+.layout{display:block;width:100%;margin-top:18px}
+.images{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;width:100%}
+.image-card{min-width:0;background:#07152a;border:1px solid #1c4d7d;border-radius:12px;padding:11px}
+.image-heading{font-weight:700;font-size:13px;min-height:32px;display:flex;align-items:center;gap:8px}
+.number{display:inline-grid;place-items:center;width:25px;height:25px;border-radius:7px;background:#163b65;color:#65d8ff;flex-shrink:0;font-size:11px}
+canvas{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain;background:#000;border-radius:7px;margin-top:7px}
+.caption{color:var(--muted);font-size:10px;margin-top:7px;line-height:1.4;min-height:14px}
+footer{text-align:center;color:#728caf;padding:22px 12px;border-top:1px solid #173456;margin-top:25px;font-size:11px}
+@media(max-width:720px){header{align-items:flex-start}.header-right{width:100%;justify-content:space-between}.upload{grid-template-columns:1fr}.controls{align-items:stretch;flex-direction:column}.btn{width:100%;text-align:center}.filename{max-width:none}.images{grid-template-columns:1fr}.panel{padding:14px}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Hệ Thống Khử Nhiễu Kim Loại CT-MAR</h1>
-        <p>Mô hình U-Net 2-channel tự động tạo mask & loại bỏ nhiễu kim loại</p>
-
-        <div class="upload-section">
-            <label for="fileInput" class="btn-select">Chọn File .RAW</label>
-            <input type="file" id="fileInput">
-            <span id="fileName" style="margin-left: 10px; color: #cbd5e1;">Chưa chọn file</span>
-            <button class="btn-process" onclick="processImage()">Gửi Xử Lý</button>
-            <div id="status"></div>
-        </div>
-
-        <div class="canvas-grid">
-            <div class="canvas-card">
-                <h3>Ảnh Đầu Vào (Artifact)</h3>
-                <canvas id="canvasInput" width="512" height="512"></canvas>
-            </div>
-            <div class="canvas-card">
-                <h3>Kết Quả (Khử Nhiễu U-Net)</h3>
-                <canvas id="canvasOutput" width="512" height="512"></canvas>
-            </div>
-        </div>
+<header>
+  <div>
+    <div class="brand">UNET <span>CT-MAR</span></div>
+    <div class="subtitle" data-i18n="subtitle">Khử nhiễu kim loại trong ảnh CT bằng U-Net 2-channel</div>
+  </div>
+  <div class="header-right">
+    <button class="lang-btn" id="languageToggle" type="button">
+      <span id="viLabel" class="active-lang">VI</span><span class="lang-sep">|</span><span id="enLabel">ENG</span>
+    </button>
+    <div class="pill" data-i18n="system">● Hệ thống CT-MAR</div>
+  </div>
+</header>
+<main>
+  <section class="panel">
+    <div class="upload">
+      <div>
+        <div class="upload-title" data-i18n="uploadTitle">Tải ảnh CT cần xử lý</div>
+        <div class="help" data-i18n="fileHelp">Định dạng .RAW · 512 × 512 pixel · Float32 · 1 MiB</div>
+      </div>
+      <div class="controls">
+        <label for="fileInput" class="btn select" data-i18n="chooseFile">＋ Chọn file RAW</label>
+        <input type="file" id="fileInput" accept=".raw">
+        <span id="fileName" class="filename">Chưa chọn file</span>
+        <button id="processBtn" class="btn process" type="button" data-i18n="processBtn">▶ Gửi xử lý</button>
+      </div>
     </div>
+    <div id="status" role="status" aria-live="polite">Sẵn sàng. Chọn một file RAW để bắt đầu.</div>
+    <div class="progress"><div id="progressBar"></div></div>
+  </section>
+  <div class="layout">
+    <section class="images">
+      <article class="image-card">
+        <div class="image-heading"><span class="number">01</span><span data-i18n="inputTitle">Ảnh đầu vào</span></div>
+        <canvas id="canvasInput" width="512" height="512"></canvas>
+        <div class="caption" data-i18n="inputCaption">Ảnh CT có nhiễu kim loại.</div>
+      </article>
+      <article class="image-card">
+        <div class="image-heading"><span class="number">02</span><span data-i18n="maskTitle">Mask kim loại</span></div>
+        <canvas id="canvasMask" width="512" height="512"></canvas>
+        <div class="caption" data-i18n="maskCaption">Mask ước tính để hiển thị.</div>
+      </article>
+      <article class="image-card">
+        <div class="image-heading"><span class="number">03</span><span data-i18n="outputTitle">Kết quả</span></div>
+        <canvas id="canvasOutput" width="512" height="512"></canvas>
+        <div class="caption" data-i18n="outputCaption">Ảnh sau khi khử nhiễu kim loại.</div>
+      </article>
+    </section>
+  </div>
+  <footer>Unet CT-MAR · 2-Channel · Metal Artifact Reduction</footer>
+</main>
+<script>
+// Thay bằng URL ngrok hiện đang hoạt động, giữ /predict ở cuối.
+const API_URL = "https://YOUR-ACTIVE-NGROK-URL.ngrok-free.dev/predict";
+const SIZE = 512, PIXELS = SIZE * SIZE, BYTE_LENGTH = PIXELS * 4;
+const fileInput = document.getElementById("fileInput");
+const statusDiv = document.getElementById("status");
+const processBtn = document.getElementById("processBtn");
+const progressBar = document.getElementById("progressBar");
+const fileName = document.getElementById("fileName");
+let currentLanguage = "vi";
 
-    <script>
-        // DÁN LINK RENDER CỦA BẠN VÀO ĐÂY (Lưu ý có /predict ở cuối):
-        // ✅ BẮT BUỘC có https:// ở đầu và có /predict ở cuối:
-        // const API_URL = "https://aapm-unet-backend.onrender.com/predict";
-        const API_URL = "https://outscore-degrading-doily.ngrok-free.dev/predict";
-        const fileInput = document.getElementById('fileInput');
-        const fileNameSpan = document.getElementById('fileName');
-        const statusDiv = document.getElementById('status');
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files[0]) {
-                fileNameSpan.textContent = e.target.files[0].name;
-            }
-        });
-
-        async function processImage() {
-            if (!fileInput.files[0]) {
-                alert("Vui lòng chọn file .raw!");
-                return;
-            }
-
-            const file = fileInput.files[0];
-            statusDiv.textContent = "Đang đọc file...";
-
-            const arrayBuffer = await file.arrayBuffer();
-            const rawData = new Float32Array(arrayBuffer);
-
-            if (rawData.length !== 512 * 512) {
-                alert("Kích thước file không đúng 512x512!");
-                statusDiv.textContent = "";
-                return;
-            }
-            renderToCanvas(rawData, 'canvasInput');
-
-            statusDiv.textContent = "Đang gửi file sang AI Model xử lý...";
-            const formData = new FormData();
-            formData.append('file', file);
-
-            try {
-                const response = await fetch(API_URL, { method: 'POST', body: formData });
-                if (!response.ok) throw new Error("Server xử lý thất bại!");
-
-                const resBuffer = await response.arrayBuffer();
-                const predData = new Float32Array(resBuffer);
-
-                renderToCanvas(predData, 'canvasOutput');
-                statusDiv.textContent = "Xử lý thành công!";
-            } catch (err) {
-                statusDiv.textContent = "Lỗi: " + err.message;
-            }
-        }
-
-        function renderToCanvas(dataFloat32, canvasId) {
-            const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext('2d');
-            const imgData = ctx.createImageData(512, 512);
-
-            const minHU = -1000, maxHU = 3000;
-            for (let i = 0; i < dataFloat32.length; i++) {
-                let val = (dataFloat32[i] - minHU) / (maxHU - minHU) * 255;
-                val = Math.max(0, Math.min(255, val));
-                const idx = i * 4;
-                imgData.data[idx] = val;     // Red
-                imgData.data[idx + 1] = val; // Green
-                imgData.data[idx + 2] = val; // Blue
-                imgData.data[idx + 3] = 255; // Alpha
-            }
-            ctx.putImageData(imgData, 0, 0);
-        }
-    </script>
+const translations = {
+ vi:{
+  subtitle:"Khử nhiễu kim loại trong ảnh CT bằng U-Net 2-channel",system:"● Hệ thống CT-MAR",
+  uploadTitle:"Tải ảnh CT cần xử lý",fileHelp:"Định dạng .RAW · 512 × 512 pixel · Float32 · 1 MiB",
+  chooseFile:"＋ Chọn file RAW",noFile:"Chưa chọn file",processBtn:"▶ Gửi xử lý",
+  readyStatus:"Sẵn sàng. Chọn một file RAW để bắt đầu.",inputTitle:"Ảnh đầu vào",
+  inputCaption:"Ảnh CT có nhiễu kim loại.",maskTitle:"Mask kim loại",
+  maskCaption:"Mask ước tính để hiển thị.",outputTitle:"Kết quả",
+  outputCaption:"Ảnh sau khi khử nhiễu kim loại.",selected:"Đã chọn file. Nhấn Gửi xử lý để tiếp tục.",
+  selectFirst:"Vui lòng chọn file RAW trước.",invalidFile:"File không hợp lệ: cần đúng 1.048.576 byte (512 × 512 Float32).",
+  reading:"Đang đọc ảnh RAW...",sending:"Đang gửi ảnh tới U-Net...",processing:"Backend đang xử lý ảnh...",
+  success:"Xử lý thành công.",apiError:"Lỗi API",pixelsError:"Số pixel ảnh không bằng 512 × 512.",
+  connectionError:"Kiểm tra URL ngrok, backend và CORS.",badResponse:"Backend không trả ảnh RAW Float32 hợp lệ.",
+  httpError:"Lỗi HTTP",maskWarning:"Lưu ý: mask hiển thị được ước tính trên frontend, không phải mask trả về từ backend."
+ },
+ en:{
+  subtitle:"Metal artifact reduction in CT images using 2-channel U-Net",system:"● CT-MAR System",
+  uploadTitle:"Upload CT image",fileHelp:"Format .RAW · 512 × 512 pixels · Float32 · 1 MiB",
+  chooseFile:"＋ Choose RAW file",noFile:"No file selected",processBtn:"▶ Process image",
+  readyStatus:"Ready. Select a RAW file to begin.",inputTitle:"Input image",
+  inputCaption:"Raw CT image with metal artifacts.",maskTitle:"Metal Mask",
+  maskCaption:"Estimated mask for display.",outputTitle:"Result",
+  outputCaption:"Image after metal artifact reduction.",selected:"File selected. Click Process image to continue.",
+  selectFirst:"Please select a RAW file first.",invalidFile:"Invalid file: expected 1,048,576 bytes (512 × 512 Float32).",
+  reading:"Reading RAW image...",sending:"Sending image to U-Net...",processing:"Backend is processing the image...",
+  success:"Processing complete.",apiError:"API error",pixelsError:"Image pixel count is not 512 × 512.",
+  connectionError:"Check the ngrok URL, backend, and CORS.",badResponse:"Backend did not return valid RAW Float32 data.",
+  httpError:"HTTP error",maskWarning:"Note: the displayed mask is estimated on the frontend, not returned by the backend."
+ }
+};
+function t(key){return translations[currentLanguage][key]||key}
+function setStatus(key){statusDiv.textContent=t(key);statusDiv.dataset.statusKey=key}
+function applyLanguage(){
+ document.documentElement.lang=currentLanguage;
+ document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.dataset.i18n;if(translations[currentLanguage][k])el.textContent=t(k)});
+ document.getElementById("viLabel").classList.toggle("active-lang",currentLanguage==="vi");
+ document.getElementById("enLabel").classList.toggle("active-lang",currentLanguage==="en");
+ fileName.textContent=fileInput.files[0]?.name||t("noFile");
+ if(["readyStatus","selected"].includes(statusDiv.dataset.statusKey))statusDiv.textContent=t(statusDiv.dataset.statusKey);
+}
+document.getElementById("languageToggle").addEventListener("click",()=>{
+ currentLanguage=currentLanguage==="vi"?"en":"vi";applyLanguage();
+});
+fileInput.addEventListener("change",()=>{
+ fileName.textContent=fileInput.files[0]?.name||t("noFile");
+ setStatus(fileInput.files[0]?"selected":"readyStatus");
+});
+function renderHU(data,canvasId){
+ if(data.length!==PIXELS)throw new Error(t("pixelsError"));
+ const canvas=document.getElementById(canvasId),ctx=canvas.getContext("2d");
+ const image=ctx.createImageData(SIZE,SIZE);
+ for(let i=0;i<PIXELS;i++){
+  const value=Number.isFinite(data[i])?data[i]:-1000;
+  const gray=Math.max(0,Math.min(255,Math.round((value+1000)/4000*255)));
+  const j=i*4;image.data[j]=gray;image.data[j+1]=gray;image.data[j+2]=gray;image.data[j+3]=255;
+ }
+ ctx.putImageData(image,0,0);
+}
+function renderMask(mask){
+ if(mask.length!==PIXELS)throw new Error(t("pixelsError"));
+ const canvas=document.getElementById("canvasMask"),ctx=canvas.getContext("2d");
+ const image=ctx.createImageData(SIZE,SIZE);
+ for(let i=0;i<PIXELS;i++){
+  const v=mask[i]>.5?255:0,j=i*4;
+  image.data[j]=v;image.data[j+1]=v;image.data[j+2]=v;image.data[j+3]=255;
+ }
+ ctx.putImageData(image,0,0);
+}
+// Ước tính mask theo cùng nguyên tắc ngưỡng của backend.
+function estimateMetalMask(data){
+ const values=[];
+ for(let i=0;i<data.length;i++)if(Number.isFinite(data[i])&&data[i]>=150)values.push(data[i]);
+ const mask=new Float32Array(PIXELS);
+ if(values.length<32)return mask;
+ values.sort((a,b)=>a-b);
+ const p95=values[Math.min(values.length-1,Math.floor(.95*(values.length-1)))];
+ const tail=values.filter(v=>v>=p95);
+ let threshold=p95;
+ if(tail.length>=2){
+  let min=Infinity,max=-Infinity;
+  for(const v of tail){if(v<min)min=v;if(v>max)max=v}
+  if(max>min){
+   const bins=256,hist=new Array(bins).fill(0);
+   for(const v of tail){const b=Math.min(bins-1,Math.floor((v-min)/(max-min)*bins));hist[b]++}
+   let total=tail.length,sum=0;for(let i=0;i<bins;i++)sum+=i*hist[i];
+   let sumB=0,wB=0,best=-1,thresholdBin=0;
+   for(let i=0;i<bins;i++){
+    wB+=hist[i];if(!wB)continue;const wF=total-wB;if(!wF)break;
+    sumB+=i*hist[i];const diff=sumB/wB-(sum-sumB)/wF;const score=wB*wF*diff*diff;
+    if(score>best){best=score;thresholdBin=i}
+   }
+   const otsu=min+(thresholdBin/bins)*(max-min);
+   threshold=Math.max(p95,otsu);
+  }
+ }
+ for(let i=0;i<PIXELS;i++)if(Number.isFinite(data[i])&&data[i]>=150&&data[i]>=threshold)mask[i]=1;
+ return mask;
+}
+async function processImage(){
+ const file=fileInput.files[0];
+ if(!file){setStatus("selectFirst");return}
+ if(file.size!==BYTE_LENGTH){setStatus("invalidFile");return}
+ processBtn.disabled=true;progressBar.style.width="5%";
+ try{
+  setStatus("reading");
+  const buffer=await file.arrayBuffer();
+  const inputData=new Float32Array(buffer);
+  if(inputData.length!==PIXELS)throw new Error(t("pixelsError"));
+  renderHU(inputData,"canvasInput");
+  const displayMask=estimateMetalMask(inputData);
+  renderMask(displayMask);
+  progressBar.style.width="20%";setStatus("sending");
+  const formData=new FormData();formData.append("file",file);
+  const response=await fetch(API_URL,{method:"POST",body:formData});
+  if(!response.ok){
+   const text=await response.text();
+   throw new Error(`${t("httpError")} ${response.status}: ${text.slice(0,180)}`);
+  }
+  progressBar.style.width="65%";setStatus("processing");
+  const contentType=response.headers.get("content-type")||"";
+  if(contentType.includes("application/json")||contentType.includes("text/html")){
+   const text=await response.text();
+   throw new Error(`${t("badResponse")} Content-Type: ${contentType}; ${text.slice(0,150)}`);
+  }
+  const outputBuffer=await response.arrayBuffer();
+  if(outputBuffer.byteLength!==BYTE_LENGTH)throw new Error(`${t("badResponse")} Received ${outputBuffer.byteLength} bytes.`);
+  const outputData=new Float32Array(outputBuffer);
+  renderHU(outputData,"canvasOutput");
+  progressBar.style.width="100%";setStatus("success");
+ }catch(error){
+  statusDiv.textContent=`${t("apiError")}: ${error.message}. ${t("connectionError")}`;
+  statusDiv.dataset.statusKey="error";progressBar.style.width="0";
+ }finally{processBtn.disabled=false}
+}
+processBtn.addEventListener("click",processImage);
+applyLanguage();
+</script>
 </body>
 </html>
+```
