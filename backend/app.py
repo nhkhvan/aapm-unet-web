@@ -1,6 +1,6 @@
 import modal
 
-# 1. Định nghĩa môi trường (Image) chứa đầy đủ các thư viện Y tế & AI
+# 1. Định nghĩa môi trường (Image)
 image = (
     modal.Image.debian_slim(python_version="3.10")
     .pip_install(
@@ -15,11 +15,11 @@ image = (
 
 app = modal.App("aapm-unet-backend")
 
-# 2. Class Model nạp weights U-Net vào GPU T4
+# 2. Class Model nạp weights U-Net chạy trên CPU miễn phí
 @app.cls(
     image=image,
-    gpu="T4",
-    container_idle_timeout=300
+    cpu=2.0, # Dùng CPU không cần liên kết thẻ VISA/Mastercard
+    scaledown_window=300
 )
 class Model:
     @modal.enter()
@@ -79,7 +79,7 @@ class Model:
                 x = self.up1(x5, x4); x = self.up2(x, x3); x = self.up3(x, x2); x = self.up4(x, x1)
                 return self.outc(x)
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu") # Chạy bằng CPU
         self.model = UNet().to(self.device)
         weights_path = hf_hub_download(repo_id="nhkv10905/unet-aapm-non-metal", filename="unet_best.pth")
         self.model.load_state_dict(torch.load(weights_path, map_location=self.device))
@@ -136,14 +136,26 @@ class Model:
 
         return pred_np.tobytes(), has_gt, rmse_total, rmse_nonmetal, aapm_score
 
-# 3. Endpoint FastAPI cho Web
+# 3. Web Endpoint FastAPI
 @app.function(image=image)
-@modal.web_endpoint(method="POST")
-async def predict(file: bytes = modal.File(...), gt_file: bytes = modal.File(default=None)):
+@modal.fastapi_endpoint(method="POST")
+async def predict(request: modal.Request):
     from fastapi.responses import Response
 
+    form = await request.form()
+    file_item = form.get("file")
+    gt_item = form.get("gt_file")
+
+    if not file_item:
+        return Response(content="Thiếu file đầu vào", status_code=400)
+
+    artifact_bytes = await file_item.read()
+    gt_bytes = await gt_item.read() if gt_item and hasattr(gt_item, "read") else None
+
     model = Model()
-    pred_bytes, has_gt, rmse_total, rmse_nonmetal, aapm_score = model.predict_image.remote(file, gt_file)
+    pred_bytes, has_gt, rmse_total, rmse_nonmetal, aapm_score = model.predict_image.remote(
+        artifact_bytes, gt_bytes
+    )
 
     headers = {
         "Access-Control-Allow-Origin": "*",
