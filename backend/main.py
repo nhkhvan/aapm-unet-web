@@ -2,7 +2,6 @@ import io, os, gc, torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-import base64
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
@@ -145,8 +144,7 @@ async def predict(file: UploadFile = File(...)):
         del art_n, mask_t, art_hu_t, model_input, pred_n, pred_hu
         gc.collect()
         
-        return {"prediction": base64.b64encode(pred_np.astype(np.float32).tobytes()).decode("ascii"),
-                "metal_mask": base64.b64encode(mask.astype(np.float32).tobytes()).decode("ascii")}
+        return Response(content=pred_np.tobytes(), media_type="application/octet-stream")
         
     except Exception as e:
         print(f"Error: {str(e)}")
