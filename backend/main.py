@@ -112,14 +112,7 @@ def health_check():
 
 @app.options("/{full_path:path}")
 async def options_handler(full_path: str):
-    return {
-    "prediction": base64.b64encode(
-        pred_np.astype(np.float32).tobytes()
-    ).decode("ascii"),
-    "metal_mask": base64.b64encode(
-        mask.astype(np.float32).tobytes()
-    ).decode("ascii")
-}
+    return Response(status_code=200)
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
@@ -152,7 +145,8 @@ async def predict(file: UploadFile = File(...)):
         del art_n, mask_t, art_hu_t, model_input, pred_n, pred_hu
         gc.collect()
         
-        return Response(content=pred_np.tobytes(), media_type="application/octet-stream")
+        return {"prediction": base64.b64encode(pred_np.astype(np.float32).tobytes()).decode("ascii"),
+                "metal_mask": base64.b64encode(mask.astype(np.float32).tobytes()).decode("ascii")}
         
     except Exception as e:
         print(f"Error: {str(e)}")
