@@ -82,7 +82,6 @@ footer{text-align:center;color:#728caf;padding:22px 12px;border-top:1px solid #1
       <article class="image-card">
         <div class="image-heading"><span class="number">02</span><span data-i18n="maskTitle">Mask kim loại</span></div>
         <canvas id="canvasMask" width="512" height="512"></canvas>
-        <div class="caption" data-i18n="maskCaption">Mask ước tính để hiển thị.</div>
       </article>
       <article class="image-card">
         <div class="image-heading"><span class="number">03</span><span data-i18n="outputTitle">Kết quả</span></div>
@@ -110,8 +109,7 @@ const translations = {
   uploadTitle:"Tải ảnh CT cần xử lý",fileHelp:"Định dạng .RAW · 512 × 512 pixel · Float32 · 1 MiB",
   chooseFile:"＋ Chọn file RAW",noFile:"Chưa chọn file",processBtn:"▶ Gửi xử lý",
   readyStatus:"Sẵn sàng. Chọn một file RAW để bắt đầu.",inputTitle:"Ảnh đầu vào",
-  inputCaption:"Ảnh CT có nhiễu kim loại.",maskTitle:"Mask kim loại",
-  maskCaption:"Mask ước tính để hiển thị.",outputTitle:"Kết quả",
+  inputCaption:"Ảnh CT có nhiễu kim loại.",maskTitle:"Mask kim loại",outputTitle:"Kết quả",
   outputCaption:"Ảnh sau khi khử nhiễu kim loại.",selected:"Đã chọn file. Nhấn Gửi xử lý để tiếp tục.",
   selectFirst:"Vui lòng chọn file RAW trước.",invalidFile:"File không hợp lệ: cần đúng 1.048.576 byte (512 × 512 Float32).",
   reading:"Đang đọc ảnh RAW...",sending:"Đang gửi ảnh tới U-Net...",processing:"Backend đang xử lý ảnh...",
@@ -124,8 +122,7 @@ const translations = {
   uploadTitle:"Upload CT image",fileHelp:"Format .RAW · 512 × 512 pixels · Float32 · 1 MiB",
   chooseFile:"＋ Choose RAW file",noFile:"No file selected",processBtn:"▶ Process image",
   readyStatus:"Ready. Select a RAW file to begin.",inputTitle:"Input image",
-  inputCaption:"Raw CT image with metal artifacts.",maskTitle:"Metal Mask",
-  maskCaption:"Estimated mask for display.",outputTitle:"Result",
+  inputCaption:"Raw CT image with metal artifacts.",maskTitle:"Metal Mask",outputTitle:"Result",
   outputCaption:"Image after metal artifact reduction.",selected:"File selected. Click Process image to continue.",
   selectFirst:"Please select a RAW file first.",invalidFile:"Invalid file: expected 1,048,576 bytes (512 × 512 Float32).",
   reading:"Reading RAW image...",sending:"Sending image to U-Net...",processing:"Backend is processing the image...",
