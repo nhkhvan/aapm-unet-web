@@ -2,6 +2,7 @@ import io, os, gc, torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
+import base64
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
@@ -111,7 +112,14 @@ def health_check():
 
 @app.options("/{full_path:path}")
 async def options_handler(full_path: str):
-    return Response(status_code=200)
+    return {
+    "prediction": base64.b64encode(
+        pred_np.astype(np.float32).tobytes()
+    ).decode("ascii"),
+    "metal_mask": base64.b64encode(
+        mask.astype(np.float32).tobytes()
+    ).decode("ascii")
+}
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
